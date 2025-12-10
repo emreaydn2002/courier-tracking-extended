@@ -1,6 +1,6 @@
 # Courier Tracking (Extended Version)
 
-A small Spring Boot service that tracks courier locations, calculates the distance to nearby Migros stores, and logs store entrance events.  
+A small Spring Boot service that tracks courier locations, calculates the distance to nearby stores, and logs store entrance events.  
 This **v2 / extended** version adds a real database, UUID-based entities, auditing fields, and a cleaner service / repository architecture.
 
 ---
@@ -179,7 +179,7 @@ Once connected, you should see tables such as:
 - `STORE`
 - `STORE_ENTRANCE_LOG`
 
-and initial rows in `STORE` for the Migros locations.
+and initial rows in `STORE` for the store locations.
 
 ---
 
