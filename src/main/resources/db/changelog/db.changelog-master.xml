@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <!-- 1. Temel tablolar (UUID + audit alanları) -->
+    <changeSet id="1-create-core-tables-uuid" author="emre">
+
+        <!-- Courier -->
+        <createTable tableName="courier">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+
+            <!-- audit -->
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="create_user" type="VARCHAR(100)" defaultValue="system"/>
+            <column name="last_modified_time" type="TIMESTAMP"/>
+            <column name="last_modified_user" type="VARCHAR(100)"/>
+        </createTable>
+
+        <!-- Store -->
+        <createTable tableName="store">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="lat" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lng" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- audit -->
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="create_user" type="VARCHAR(100)" defaultValue="system"/>
+            <column name="last_modified_time" type="TIMESTAMP"/>
+            <column name="last_modified_user" type="VARCHAR(100)"/>
+        </createTable>
+
+        <!-- Courier track (son konum + toplam mesafe) -->
+        <createTable tableName="courier_track">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="courier_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="last_lat" type="DOUBLE"/>
+            <column name="last_lng" type="DOUBLE"/>
+            <column name="last_time" type="TIMESTAMP"/>
+
+            <column name="total_distance_meters" type="DOUBLE" defaultValueNumeric="0"/>
+
+            <!-- audit -->
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="create_user" type="VARCHAR(100)" defaultValue="system"/>
+            <column name="last_modified_time" type="TIMESTAMP"/>
+            <column name="last_modified_user" type="VARCHAR(100)"/>
+        </createTable>
+
+        <!-- Store entrance log -->
+        <createTable tableName="store_entrance_log">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="courier_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="store_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entrance_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="distance_meters" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- audit -->
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="create_user" type="VARCHAR(100)" defaultValue="system"/>
+            <column name="last_modified_time" type="TIMESTAMP"/>
+            <column name="last_modified_user" type="VARCHAR(100)"/>
+        </createTable>
+
+        <!-- Foreign keys -->
+        <addForeignKeyConstraint
+                baseTableName="courier_track"
+                baseColumnNames="courier_id"
+                referencedTableName="courier"
+                referencedColumnNames="id"
+                constraintName="fk_courier_track_courier"/>
+
+        <addForeignKeyConstraint
+                baseTableName="store_entrance_log"
+                baseColumnNames="courier_id"
+                referencedTableName="courier"
+                referencedColumnNames="id"
+                constraintName="fk_store_entrance_courier"/>
+
+        <addForeignKeyConstraint
+                baseTableName="store_entrance_log"
+                baseColumnNames="store_id"
+                referencedTableName="store"
+                referencedColumnNames="id"
+                constraintName="fk_store_entrance_store"/>
+
+        <!-- Indexler -->
+        <createIndex tableName="courier_track" indexName="ix_courier_track_courier">
+            <column name="courier_id"/>
+        </createIndex>
+
+        <createIndex tableName="store_entrance_log" indexName="ix_store_entrance_courier_store_time">
+            <column name="courier_id"/>
+            <column name="store_id"/>
+            <column name="entrance_time"/>
+        </createIndex>
+
+    </changeSet>
+
+    <!-- 2. Örnek kuryeler (c1, c2) - id'ler RANDOM_UUID() -->
+    <changeSet id="2-insert-initial-couriers" author="emre" context="seed">
+
+        <insert tableName="courier">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="code" value="c1"/>
+            <column name="name" value="Courier 1"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+        <insert tableName="courier">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="code" value="c2"/>
+            <column name="name" value="Courier 2"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+    </changeSet>
+
+    <!-- 3. Migros mağazaları (JSON'daki liste) -->
+    <changeSet id="3-insert-initial-stores" author="emre" context="seed">
+
+        <insert tableName="store">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="name" value="Ataşehir MMM Migros"/>
+            <column name="lat" valueNumeric="40.9923307"/>
+            <column name="lng" valueNumeric="29.1244229"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+        <insert tableName="store">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="name" value="Novada MMM Migros"/>
+            <column name="lat" valueNumeric="40.986106"/>
+            <column name="lng" valueNumeric="29.1161293"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+        <insert tableName="store">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="name" value="Beylikdüzü 5M Migros"/>
+            <column name="lat" valueNumeric="41.0066851"/>
+            <column name="lng" valueNumeric="28.6552262"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+        <insert tableName="store">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="name" value="Ortaköy MMM Migros"/>
+            <column name="lat" valueNumeric="41.055783"/>
+            <column name="lng" valueNumeric="29.0210292"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+        <insert tableName="store">
+            <column name="id" valueComputed="RANDOM_UUID()"/>
+            <column name="name" value="Caddebostan MMM Migros"/>
+            <column name="lat" valueNumeric="40.9632463"/>
+            <column name="lng" valueNumeric="29.0630908"/>
+            <column name="create_user" value="system"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
