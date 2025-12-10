@@ -11,7 +11,6 @@ This **v2 / extended** version adds a real database, UUID-based entities, auditi
 - Calculate the distance to each store using the **Haversine** formula.
 - Detect when a courier enters a store radius and persist this as a **store entrance log**.
 - Allow querying a courier’s entrance history via REST APIs.
-- Keep the codebase simple enough for demos, interviews, and experiments.
 
 ---
 
