@@ -30,7 +30,7 @@ Compared to the initial “in-memory” version of the project:
      - `courier`
      - `store`
      - `store_entrance_log`
-   - Inserts initial Migros stores (Ataşehir, Novada, Beylikdüzü, Ortaköy, Caddebostan, …).
+   - Inserts initial stores (Ataşehir, Novada, Beylikdüzü, Ortaköy, Caddebostan, …).
 
 3. **UUID entities with audit fields**
    - All entities extend a common `BaseEntity` with:
